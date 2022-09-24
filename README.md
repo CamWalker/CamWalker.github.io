@@ -1,3 +1,19 @@
+# To Do
+
+[x] Start Button
+[x] Instructions 
+[x] Number the rounds
+[x] Move the swatches to the top
+[x] Mobile friendly
+[] Animation for colors popping in
+[x] Clear all selected colors button
+[x] Celebratory confetti
+[] Restart Button
+[] Local Storage
+	[] Streak
+	[] Records of when and how many
+[] Copy Results to clipboard
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

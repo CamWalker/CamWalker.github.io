@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Courgette&display=swap');
+
+.board {
+  min-height: 100%;
+  min-width: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  color: #000000;
+}
+
+.main {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	min-height: 400px;
+	height: calc(100% - 64px);
+	width: 360px;
+	max-width: 360px;
+	padding: 32px;
+}
+
+.main-top {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	width: 100%;
+}
+
+.main-item {
+	position: relative;
+	width: 100%;
+	height: 0;
+	float: left;
+}
+
+.main-item ~ .main-item {
+	margin-top: 4%;
+}
+
+.submissions-container {
+	padding-bottom: 16.66%;
+}
+
+.submissions {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.submission {
+	flex: 1;
+	height: 90%;
+	border-radius: 8px;
+	margin: auto 0;
+	font-family: 'Courgette', cursive;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #CCCCCC;
+	font-size: 2rem;
+}
+
+.submission ~ .submission {
+	margin-left: 2%;
+}
+
+.mix-container {
+	padding-bottom: 100%;
+}
+
+.mix-colors {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	border-radius: 32px;
+	flex: 1;
+	overflow: hidden;
+}
+
+.mix-color {
+	display: flex;
+	flex: 1;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	color: #FFF;
+	font-size: 2rem;
+}
+
+.mix-color-text {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 3rem 0;
+	flex: 1;
+}
+
+.mix-color-text > span {
+	flex: 1;
+}
+
+.mix-color-text > span:last-child {
+	flex: 2;
+	font-size: 3rem;
+}
+
+.selected-container {
+	padding-bottom: 20%;
+}
+
+.selected-colors {
+	position: absolute;
+	margin-left: auto;
+	margin-right: auto;
+	left: 0;
+	right: 0;
+	text-align: center;
+	height: 100%;
+	width: 75%;
+	display: flex;
+	flex-flow: column wrap;
+	align-items: center;
+	justify-content: center;
+}
+
+.selected-color {
+	margin: auto;
+	width: 8.26%;
+	height: 31%;
+	border-radius: 50%;
+	border: 2px solid #CCCCCC;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.selected-color > div {
+	display: none;
+	transform: rotate(45deg);
+	opacity: 0.5;
+	background-color: #EEEEEE;
+	color: #CCCCCC;
+	height: 25px;
+	width: 25px;
+	border-radius: 50%;
+	justify-content: center;
+	line-height: 19px;
+}
+
+.selected-color:hover > div {
+	display: flex;
+}
+
+.input-container {
+	padding-bottom: 24%;
+}
+
+.input-colors {
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+.submit {
+	width: calc(100% - 48px);
+	height: unset;
+}
