@@ -202,13 +202,6 @@ const Board = () => {
 									)
 								})
 							}
-							<Button
-								onClick={removeAllColors}
-								type="secondary"
-								style={{ padding: 8 }}
-							>
-								Clear
-							</Button>
 						</div>
 					</div>
 				</div>

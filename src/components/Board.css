@@ -124,7 +124,7 @@
 	right: 0;
 	text-align: center;
 	height: 100%;
-	width: 75%;
+	width: 50%;
 	display: flex;
 	flex-flow: column wrap;
 	align-items: center;
@@ -133,7 +133,7 @@
 
 .selected-color {
 	margin: auto;
-	width: 8.26%;
+	width: 12.40%;
 	height: 31%;
 	border-radius: 50%;
 	border: 2px solid #CCCCCC;
