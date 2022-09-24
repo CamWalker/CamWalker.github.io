@@ -2,15 +2,13 @@ import React, { useEffect, useState } from 'react';
 import Chance from 'chance';
 import Confetti from 'react-confetti'
 import RGB_RYB from './RGB_RYB';
-import InputColor from './InputColor';
-import Button from './Button';
 import './Board.css';
 
 // Default State
 const defaultState = [
-	['#FF0000', 0],
-	['#FFFF00', 0],
-	['#0000FF', 0],
+	['#D81210', 0],
+	['#FFDA01', 0],
+	['#005AD3', 0],
 	['#FFFFFF', 0],
 ];
 
@@ -34,6 +32,9 @@ const Board = () => {
 	const [seconds, setSeconds] = useState(0);
 	const [submissions, setSubmissions] = useState([]);
 	const [colors, setColors] = useState(new Map(defaultState));
+	const isWon = submissions.length > 0 
+		&& submissions[submissions.length - 1] === dailyChallenge.hexRGB;
+	const isLost = submissions.length === 6 && !isWon;
 
 	// Count down to 0
 	useEffect(() => {
@@ -58,7 +59,12 @@ const Board = () => {
 	const selectedColors = getSelectedColors();
 
 	function addColor(hex) {
-		if (selectedColors.length < maxSelection) {
+		if (
+			selectedColors.length < maxSelection
+			&& isReady
+			&& !isWon
+			&& !isLost
+		) {
 			const newColors = new Map(colors);
 			const colorCount = newColors.get(hex);
 			newColors.set(hex, colorCount + 1);
@@ -67,21 +73,19 @@ const Board = () => {
 	}
 
 	function removeColor(hex) {
-		hex = hex.toUpperCase();
-		const newColors = new Map(colors);
-		const colorCount = newColors.get(hex);
-		if (colorCount > 0) {
-			newColors.set(hex, colorCount - 1);
+		if (
+			isReady
+			&& !isWon
+			&& !isLost
+		) {
+			hex = hex.toUpperCase();
+			const newColors = new Map(colors);
+			const colorCount = newColors.get(hex);
+			if (colorCount > 0) {
+				newColors.set(hex, colorCount - 1);
+			}
+			setColors(newColors);
 		}
-		setColors(newColors);
-	}
-
-	function removeAllColors() {
-		const newColors = new Map(colors);
-		newColors.forEach((value, key) => {
-			newColors.set(key, 0);
-		})
-		setColors(newColors);
 	}
 
 	function mixColors() {
@@ -94,9 +98,6 @@ const Board = () => {
 	}
 
 	const mixedColors = mixColors();
-	const isWon = submissions.length > 0 
-		&& submissions[submissions.length - 1] === dailyChallenge.hexRGB;
-	const isLost = submissions.length === 6 && !isWon;
 
 	function submit() {
 		if (!isWon && selectedColors.length === maxSelection && submissions.length < 6) {
@@ -153,15 +154,15 @@ const Board = () => {
 								}}
 							>
 								{!isReady ? (
-									<Button
+									<div
 										onClick={() => {
 											setIsReady(true);
 											setSeconds(3);
 										}}
-										type="secondary"
+										className="start-button rainbow"
 									>
 										Start
-									</Button>
+									</div>
 								) : (
 									<div className='mix-color-text'>
 										<span>{(
@@ -209,17 +210,23 @@ const Board = () => {
 					<div className="input-container main-item">
 						<div className="input-colors">
 							{Array.from(colors).map(([color, count]) => (
-								<InputColor key={color} color={color} onClick={addColor} />
+								<div
+									key={color} 
+									style={{ backgroundColor: color }}
+									className="input-color"
+									onClick={() => addColor(color)}
+								/>
 							))}
+							<div
+								className={`submit main-item ${!(isWon || isLost || selectedColors.length !== maxSelection) ? 'rainbow' : ''}`}
+								disabled={isWon || isLost || selectedColors.length !== maxSelection}
+								onClick={submit}
+							>
+								Enter
+							</div>
 						</div>
 					</div>
-					<Button
-						className="submit main-item"
-						disabled={isWon || isLost || selectedColors.length !== maxSelection}
-						onClick={submit}
-					>
-						Submit
-					</Button>
+					
 				</div>
 			</div>
 		</div>
