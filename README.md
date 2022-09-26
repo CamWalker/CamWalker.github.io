@@ -1,14 +1,10 @@
 # To Do
-
-[] Possible Mobile issues (change padding)
-[] Animation for colors popping in
-[] Local Storage
-	[] Streak
-	[] Records of when and how many
-[] Copy Results to clipboard
-[] SSR
-[] Change instructions
+[] Modal
+	[] Display Results/Stats
+	[] Copy Results to clipboard
+	[] Change instructions
 [] Toast
+[] SSR
 
 # Ideas
 -  Extra inputs for more challenge
