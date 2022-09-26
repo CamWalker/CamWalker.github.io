@@ -22,7 +22,7 @@ const ColorModel = model('ColorModel', {
 			if (szTwo.length === 1) szColor += "0" + szTwo; else szColor += szTwo;
 			if (szThr.length === 1) szColor += "0" + szThr; else szColor += szThr;
 			
-			return `#${szColor}`;
+			return `#${szColor.toUpperCase()}`;
 		},
 		get rgb() {
 			return [self.r, self.g, self.b];
@@ -327,6 +327,10 @@ const RootModel = model('RootModel', {
 				}
 			}
 		},
+		copyToClipboard() {
+			const text = self.submissions.map(submission => submission.hex).join('\n');
+			navigator.clipboard.writeText(text);
+		}
 	}));
 
 export default RootModel.create();

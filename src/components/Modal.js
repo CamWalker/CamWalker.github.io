@@ -7,14 +7,14 @@ const Modal = ({ title, visible, onClose, children }) => {
 
 	return (
 		<div className={`modal-wrapper ${visible && 'visible'}`} onClick={onClose}>
-			<div className="modal-body">
+			<div className="modal-body" onClick={(e) => e.stopPropagation()}>
 				<div>
 					<div className="">
 						<h1 className="header">
 							{title}
 						</h1>
 					</div>
-					<div>
+					<div className="modal-children">
 						{children}
 					</div>
 				</div>

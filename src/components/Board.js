@@ -55,7 +55,7 @@ const Board = ({ store }) => {
 						{stats.breakDown.map((count, index) => {
 							const maxBar = Math.max(...stats.breakDown);
 							return (
-								<div className='dist-row'>
+								<div key={index} className='dist-row'>
 									<div className='dist-row-label'>{index + 1}</div>
 									{count > 0 && (
 										<div
@@ -76,7 +76,9 @@ const Board = ({ store }) => {
 						})}
 					</div>
 				</div>
-				
+				<div className='share-button rainbow' onClick={store.copyToClipboard}>
+					Share
+				</div>
 			</Modal>
 			<div className='wrapper'>
 				<div className="main">

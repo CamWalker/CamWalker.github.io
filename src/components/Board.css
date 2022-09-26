@@ -67,6 +67,15 @@
 	padding: 0 8px;
 }
 
+.share-button {
+	width: fit-content;
+	padding: 8px 16px;
+	border-radius: 8px;
+	align-self: center;
+	color: #FFF;
+	cursor: pointer;
+}
+
 .wrapper {
 	display: flex;
 	flex-direction: column;

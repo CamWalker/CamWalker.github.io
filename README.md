@@ -1,7 +1,7 @@
 # To Do
-[] Modal
-	[] Display Results/Stats
-	[] Copy Results to clipboard
+[x] Modal
+	[x] Display Results/Stats
+	[x] Copy Results to clipboard
 	[] Change instructions
 [] Toast
 [] SSR
