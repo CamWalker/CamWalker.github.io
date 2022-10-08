@@ -25,15 +25,36 @@
 	width: 90%;
 	max-height: 100%;
 	overflow-y: auto;
-	animation: modal-slide 0.3s;
+	animation: modal-slide-in 0.3s, opacity-in 0.3s;
 	max-width: 424px;
 	padding: 16px;
 	box-sizing: border-box;
 }
 
-@keyframes modal-slide {
+.modal-body.invisible {
+	animation: modal-slide-out 2s infinite, opacity-out 2s infinite;
+}
+
+@keyframes modal-slide-in {
 	0% { opacity: 0; margin-top: 32px; }
 	100% { opacity: 1; margin-top: 0px; }
+}
+
+@keyframes modal-slide-out {
+	0% { opacity: 1; margin-top: 0px; }
+	15% { opacity: 0; margin-top: 32px; }
+	100% { opacity: 0; margin-top: 32px; }
+}
+
+@keyframes opactiy-in {
+	0% { opacity: 0 }
+	100% { opacity: 1; }
+}
+
+@keyframes opactiy-out {
+	0% { opacity: 1; }
+	15% { opacity: 0; }
+	100% { opacity: 0; }
 }
 
 .modal-close {
@@ -43,6 +64,12 @@
 	top: 16px;
 	right: 16px;
 	cursor: pointer;
+}
+
+.header-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
 }
 
 .header {
@@ -55,4 +82,11 @@
 .modal-children {
 	display: flex;
 	flex-direction: column;
+	padding: 8px 8px 16px 8px;
+}
+
+.modal-footer {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
 }

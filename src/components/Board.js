@@ -1,13 +1,16 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import Confetti from 'react-confetti';
-import Modal from './Modal';
+import Modal from './Modal/Modal';
 import './Board.css';
+import Toast from './Toast/Toast';
+import Clock from './Clock/Clock';
 
 const Board = ({ store }) => {
 	const stats = store.stats;
 	return (
 		<div className="board">
+			<Toast toastModel={store.toast} />
 			<Confetti
 				run={store.isWon}
 				colors={store.confettiColors}
@@ -16,9 +19,86 @@ const Board = ({ store }) => {
 				numberOfPieces={500}
 			/>
 			<Modal
+				title="How to Play"
+				visible={store.showInstructions}
+				onClose={() => {
+					store.setShowInstructions(false);
+					store.setHasStarted(true);
+					store.countDown(3);
+				}}
+				body={[(
+					<div className='how-step'>
+						<div className='step-label'>
+							<strong>Step 1</strong>
+							<span>Remember the color</span>
+						</div>
+						<div className='step-instructions'>
+							A color will be shown for 3 seconds, then hidden. Remember that color!
+						</div>
+						<div className='step-visual'>
+							<div
+								className="submission countdown-example"
+							/>
+						</div>
+					</div>
+				), (
+					<div className='how-step'>
+						<div className='step-label'>
+							<strong>Step 2</strong>
+							<span>Recreate the color</span>
+						</div>
+						<div className='step-instructions'>
+							Fill all 10 color slots to mix a new color that matches the color you remembered <i>(hopefully!)</i>.
+						</div>
+						<div className='step-visual'>
+							<div className='example-dots'>
+								{Array(10).fill(null).map((v, i) => (
+									<div key={i} className='example-dot' />
+								))}
+							</div>
+							<div
+								className="submission example-dot-mix"
+							/>
+						</div>
+					</div>
+				), (
+					<div className='how-step'>
+						<div className='step-label'>
+							<strong>Step 3</strong>
+							<span>Complete in 6 tries to win!</span>
+						</div>
+						<div className='step-instructions'>
+							You get 6 guesses to match the color of the day. Come back each day for a new challenge.
+						</div>
+						<div className='step-visual'>
+							{[
+								'rgb(85, 51, 151)',
+								'rgb(108, 75, 153)',
+								'rgb(132, 99, 154)',
+								'rgb(156, 112, 200)',
+								'rgb(154, 88, 176)',
+							].map((color, i) => (
+								<div
+									key={i}
+									className="submission"
+									style={{ backgroundColor: color }}
+								/>
+							))}
+							<div
+								className="submission"
+								style={{ backgroundColor: '#FFF', border: '1px solid #CCC', color: '#CCC' }}
+							>6</div>
+						</div>
+					</div>
+				)]}
+			/>
+			<Modal
 				title="Stats"
 				visible={store.showStats}
 				onClose={() => store.setShowStats(false)}
+				footerLeft={<Clock getTime={store.getTimeUntilNextGame} />}
+				actionText="Share"
+				onActionClick={store.copyToClipboard}
 			>
 				<div className='stat-container'>
 					{[
@@ -50,7 +130,9 @@ const Board = ({ store }) => {
 					))}
 				</div>
 				<div className='dist-container'>
-					<div className='header'>Distribution</div>
+					<div className='header-container'>
+						<div className='header'>Distribution</div>
+					</div>
 					<div className='dist'>
 						{stats.breakDown.map((count, index) => {
 							const maxBar = Math.max(...stats.breakDown);
@@ -59,25 +141,26 @@ const Board = ({ store }) => {
 									<div className='dist-row-label'>{index + 1}</div>
 									{count > 0 && (
 										<div
-											className={`dist-row-bar ${
-												(store.isWon && store.submissions.length === index + 1) && (
-													'rainbow'
-												)
-											}`}
-											style={{
-												width: `${count / maxBar * 100}%`,
-											}}
+											className='dist-row-bar'
 										>
-											{count}
+											<div
+												className={`dist-row-bar-inner ${
+													(store.isWon && store.submissions.length === index + 1) && (
+														'rainbow'
+													)
+												}`}
+												style={{
+													width: `calc(${count / maxBar * 100}% - 16px)`,
+												}}
+											>
+												{count}
+											</div>
 										</div>
 									)}
 								</div>
 							)
 						})}
 					</div>
-				</div>
-				<div className='share-button rainbow' onClick={store.copyToClipboard}>
-					Share
 				</div>
 			</Modal>
 			<div className='wrapper'>
@@ -118,22 +201,11 @@ const Board = ({ store }) => {
 											}}
 											className="start-button rainbow"
 										>
-											Start
+											Click<br />to<br />Start
 										</div>
 									) : (
 										<div className='mix-color-text'>
-											<span>{(
-												store.isWon
-												? 'Spectacular!'
-												: store.isLost 
-													? 'Better luck next time'
-													: store.seconds === 0
-														? store.selectedColorsOnly.length === 0 && 'Recreate the color'
-														: 'Remember this color'
-											)}</span>
-											<span>
-												{(store.seconds !== 0 && !store.isWon && !store.isLost) && store.seconds}
-											</span>
+											{(store.seconds !== 0 && !store.isWon && !store.isLost) && store.seconds}
 										</div>
 									)}
 								</div>

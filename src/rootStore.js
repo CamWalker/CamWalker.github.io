@@ -1,60 +1,11 @@
 import { types, getSnapshot } from 'mobx-state-tree';
 import Chance from 'chance';
-
+import ToastModel from './components/Toast/Toast.model';
+import ColorModel from './models/color.model';
+import HistoryModel from './models/history.model';
 const { model, array, optional, boolean, integer, maybeNull } = types;
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
-
-const ColorModel = model('ColorModel', {
-	r: optional(integer, 0),
-	g: optional(integer, 0),
-	b: optional(integer, 0),
-})
-	.views(self => ({
-		get hex() {
-			// Create the hex code for the array.
-			let szColor = "";
-			const szOne = self.r.toString(16);
-			const szTwo = self.g.toString(16);
-			const szThr = self.b.toString(16);
-			
-			if (szOne.length === 1) szColor += "0" + szOne; else szColor += szOne;
-			if (szTwo.length === 1) szColor += "0" + szTwo; else szColor += szTwo;
-			if (szThr.length === 1) szColor += "0" + szThr; else szColor += szThr;
-			
-			return `#${szColor.toUpperCase()}`;
-		},
-		get rgb() {
-			return [self.r, self.g, self.b];
-		},
-		get rgbString() {
-			return `rgb(${self.rgb.join(', ')})`;
-		}
-	}));
-
-const HistoryModel = model('HistoryModel', {
-	todayTimestamp: integer,
-	hasStarted: optional(boolean, false),
-	submissions: array(ColorModel),
-	todayChallenge: optional(ColorModel, {}),
-})
-.views(self => ({
-	get isWon() {
-		if (self.submissions.length === 0) return false;
-		const lastSubmission = self.submissions[self.submissions.length - 1];
-		return (
-			self.todayChallenge.r === lastSubmission.r
-			&& self.todayChallenge.g === lastSubmission.g
-			&& self.todayChallenge.b === lastSubmission.b
-		);
-	},
-	get submissionCount() {
-		return self.submissions.length;
-	},
-	wasOneDayBefore(timestamp) {
-		return timestamp - ONE_DAY === self.todayTimestamp;
-	},
-}));
 
 const RootModel = model('RootModel', {
 	hasStarted: optional(boolean, false),
@@ -64,6 +15,8 @@ const RootModel = model('RootModel', {
 	todayChallenge: optional(ColorModel, {}),
 	history: array(HistoryModel),
 	showStats: optional(boolean, false),
+	showInstructions: optional(boolean, false),
+	toast: optional(ToastModel, {}),
 })
 	.views(self => ({
 		get selectedColorsOnly() {
@@ -81,7 +34,8 @@ const RootModel = model('RootModel', {
 			return 10;
 		},
 		get isWon() {
-			return self.submissions.length > 0 
+			return self.submissions.length > 0
+				&& self.submissions.length < 7
 				&& self.submissions[self.submissions.length - 1].hex === self.todayChallenge.hex;
 		},
 		get isLost() {
@@ -149,6 +103,20 @@ const RootModel = model('RootModel', {
 			today.setUTCHours(0, 0, 0, 0);
 			return today.getTime();
 		},
+		get tomorrowUTC() {
+			return self.todayUTC + ONE_DAY;
+		},
+		getTimeUntilNextGame(currentTime) {
+			let seconds = Math.floor((self.tomorrowUTC - currentTime) / 1000);
+
+			const oneMinuteInSeconds = 60;
+			const oneHourInSeconds = 60 * oneMinuteInSeconds;
+			const hours = Math.floor(seconds / oneHourInSeconds);
+			seconds -= hours * oneHourInSeconds;
+			const minutes = Math.floor(seconds / oneMinuteInSeconds);
+			seconds -= minutes * oneMinuteInSeconds;
+			return `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+		},
 		get todayHistoryIndex() {
 			return self.history.findIndex(day => day.todayTimestamp === self.todayUTC);
 		},
@@ -165,9 +133,13 @@ const RootModel = model('RootModel', {
 			const breakDown = [0,0,0,0,0,0];
 			for (let index = playedCount - 1; index >= 0; index--) {
 				const day = self.history[index];
-				const yesterday = self.history[index - 1];
-				if (day.isWon && (!yesterday || yesterday.wasOneDayBefore(day.todayTimestamp))) {
+				const tomorrow = self.history.length > index + 1 && self.history[index + 1];
+
+				if (day.isWon) {
 					wonCount++;
+				}
+
+				if (day.isWon && (!tomorrow || day?.wasOneDayBefore?.(tomorrow.todayTimestamp))) {
 					currentStreak++;
 				} else {
 					if (currentStreak > longestStreak) {
@@ -181,21 +153,26 @@ const RootModel = model('RootModel', {
 					todayStreak++;
 				}
 
-				breakDown[day.submissionCount - 1] += 1;
+				if (day.submissionCount > 0 && day.submissionCount < 7 && day.isWon) {
+					breakDown[day.submissionCount - 1] += 1;
+				}
 			}
 
 			if (currentStreak > longestStreak) {
 				longestStreak = currentStreak;
 			}
 
+			const allGuessesCount = breakDown.reduce((sum, v, i) => sum + (v * (i + 1)), 0);
+			const totalDaysPlayed = breakDown.reduce((sum, v) => sum + v, 0);
+
 			return {
 				playedCount,
-				wonPercent: Math.round(wonCount / playedCount * 100),
+				wonPercent: playedCount === 0 ? 0 : Math.round(wonCount / playedCount * 100),
 				todayStreak,
 				longestStreak,
-				averageGuesses: Math.round((breakDown.reduce((sum, v, i) => sum + (v * (i + 1)), 0) / breakDown.reduce((sum, v) => sum + v, 0)) * 10) / 10,
+				averageGuesses: allGuessesCount === 0 ? 0 : Math.round(( allGuessesCount / totalDaysPlayed ) * 10) / 10,
 				breakDown,
-			}
+			};;
 		}
 	}))
 	.actions(self => ({
@@ -210,10 +187,13 @@ const RootModel = model('RootModel', {
 		fetchHistory() {
 			let stringHistory = localStorage.getItem('game_history');
 			if (!stringHistory) {
-				self.saveTodayHistory()
+				self.saveTodayHistory();
 			} else {
 				self.history = JSON.parse(stringHistory);
 				self.applyTodayHistory();
+			}
+			if (self.history[0].todayTimestamp === self.todayHistory.todayTimestamp && !self.todayHistory.isWon) {
+				self.setShowInstructions(true);
 			}
 		},
 		saveTodayHistory() {
@@ -235,6 +215,9 @@ const RootModel = model('RootModel', {
 			// self.saveTodayHistory();
 			localStorage.setItem('game_history', JSON.stringify(getSnapshot(self.history)));
 		},
+		setHistory(history) {
+			self.history = history;
+		},
 		applyTodayHistory() {
 			if (!self.todayHistory) {
 				self.saveTodayHistory();
@@ -248,8 +231,14 @@ const RootModel = model('RootModel', {
 			const seed = self.todayUTC;
 			// const seed = Date.now();
 			const chance = new Chance(seed);
+			const shouldIgnoreOne = chance.integer({ min: 0, max: 1 }) === 0;
+			let indexToIgnore = shouldIgnoreOne ? chance.integer({ min: 0, max: 3 }) : null;
+			
 			const colorsToMix = Array(self.maxSelection).fill(null).map(() => {
-				const index = chance.integer({ min: 0, max: 3 });
+				let index = null;
+				do {
+					index = chance.integer({ min: 0, max: 3 });
+				} while (index === indexToIgnore);
 				return self.inputColors[index];
 			});
 			const challengeRGB = self.mix(...colorsToMix);
@@ -257,6 +246,7 @@ const RootModel = model('RootModel', {
 				r: challengeRGB[0],
 				g: challengeRGB[1],
 				b: challengeRGB[2],
+				composition: colorsToMix.map(([r, g, b]) => ({ r, g, b })),
 			};
 			self.saveTodayHistory();
 		},
@@ -276,6 +266,9 @@ const RootModel = model('RootModel', {
 		},
 		setShowStats(showStats) {
 			self.showStats = showStats;
+		},
+		setShowInstructions(showInstructions) {
+			self.showInstructions = showInstructions;
 		},
 		countDown(seconds) {
 			self.setSeconds(seconds);
@@ -310,12 +303,14 @@ const RootModel = model('RootModel', {
 				!self.isWon
 				&& self.selectedColorsOnly.length === self.maxSelection
 				&& self.submissions.length < 6
+				&& self.seconds === 0
 			) {
 				const mixedColor = self.mixedColors;
 				self.submissions.push({
 					r: mixedColor[0],
 					g: mixedColor[1],
 					b: mixedColor[2],
+					composition: getSnapshot(self.selectedColors),
 				});
 				self.saveTodayHistory();
 				if (self.mixedColorString !== self.todayChallenge.rgbString) {
@@ -323,13 +318,78 @@ const RootModel = model('RootModel', {
 				}
 
 				if (self.isLost ||  self.isWon) {
+					if (self.isWon) {
+						let text = ''
+						switch (self.submissions.length) {
+							case 1:
+								text = 'Spectacular!';
+								break;
+							case 2:
+							case 3:
+								text = 'Well done!';
+								break;
+							case 4:
+							case 5:
+								text = 'Good job';
+								break;
+							case 6:
+								text = 'That was a close one';
+								break;
+							default:
+								text = 'Good job';
+								break;
+						}
+						self.toast.show(text, 2400);
+					} else {
+						self.toast.show('Better luck next time', 2400);
+					}
 					self.setShowStats(true);
 				}
+			} else if (
+				self.hasStarted 
+				&& self.selectedColorsOnly.length !== self.maxSelection
+				&& !self.isWon
+				&& !self.isLost
+			) {
+				self.toast.show('Fill all 10 colors', 2400);
 			}
 		},
 		copyToClipboard() {
-			const text = self.submissions.map(submission => submission.hex).join('\n');
+			const todayCounts = self.todayChallenge.compositionCounts;
+
+			const text = window.location.hostname + '\n\n' + self.submissions.map(submission => {
+				const mistakeColors = [];
+				const submissionCounts = submission.compositionCounts;
+				for (const color in submissionCounts) {
+					if (!todayCounts[color] && submissionCounts[color] > 0) {
+						mistakeColors.push(...Array(submissionCounts[color]).fill(color));
+					} else if (submissionCounts[color] > todayCounts[color]) {
+						mistakeColors.push(...Array(submissionCounts[color] - todayCounts[color]).fill(color));
+					}
+				}
+
+				const allGuesses = [].concat(
+					Array(self.maxSelection - mistakeColors.length).fill(String.fromCodePoint(9989)),
+					mistakeColors.map(color => {
+						switch (color) {
+							case 'rgb(238, 17, 17)':
+								return String.fromCodePoint(128308);
+							case 'rgb(238, 238, 17)':
+								return String.fromCodePoint(128993);
+							case 'rgb(17, 17, 238)':
+								return String.fromCodePoint(128309);
+							case 'rgb(255, 255, 255)':
+							default:
+								return String.fromCodePoint(9898);
+						}
+					}),
+				);
+
+				return allGuesses.join('');
+			}).join('\n');
+
 			navigator.clipboard.writeText(text);
+			self.toast.show('Copied to clipboard', 2400);
 		}
 	}));
 

@@ -1,9 +1,8 @@
 # To Do
-[x] Modal
-	[x] Display Results/Stats
-	[x] Copy Results to clipboard
-	[] Change instructions
-[] Toast
+[] Try some new users
+[] Google Analytics
+[] Domain
+[] Support me
 [] SSR
 
 # Ideas
